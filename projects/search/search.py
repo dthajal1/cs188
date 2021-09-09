@@ -123,68 +123,51 @@ def depthFirstSearch(problem):
 
     return result
 
-    # fringe = util.Stack()
-    # from collections import defaultdict
-    # fringe.push((problem.getStartState(), defaultdict(list), defaultdict(list)))
-
-    # visited = []
-
-    # while not fringe.isEmpty():
-    #     currState, listOfActionsTakenSoFar, costSoFar = fringe.pop();
-
-    #     if problem.isGoalState(currState):
-    #         # print(costSoFar[currState][-1])
-    #         return listOfActionsTakenSoFar[currState]
-
-    #     if (currState not in visited):
-    #         visited.append(currState)
-            
-    #         for nextState, nextAction, nextCost in problem.getSuccessors(currState):
-    #             # append the actions taken so far to get to currState
-    #             for prevAction in listOfActionsTakenSoFar[currState]:
-    #                 listOfActionsTakenSoFar[nextState].append(prevAction)
-    #             # append the next action to be taken to actionsTakenSoFar
-    #             listOfActionsTakenSoFar[nextState].append(nextAction)
-
-    #             append the cost to get to curr state and the cost to get to next state
-    #             costSoFar[nextState].append(nextCost + sum(costSoFar[currState]))                
-
-    #             fringe.push((nextState, listOfActionsTakenSoFar, costSoFar))
-    # return []
-
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     
+   # BFS uses Queue data structure (FIFO)
     fringe = util.Queue()
-    from collections import defaultdict
-    fringe.push((problem.getStartState(), defaultdict(list), defaultdict(list)))
+    fringe.push(problem.getStartState())
 
+    # keeps track of (state, action, cost) taken to get from previous state to current state
+    from collections import defaultdict
+    edgeTo = defaultdict(list)
+
+    # keeps track of nodes visted so far so we don't revisit them again
     visited = []
 
+    # will eventually hold the list of actions taken to get from start to goal state 
+    result = []
+
+    # mark initial state as visited
+    visited.append(problem.getStartState())
+
+    # loop
     while not fringe.isEmpty():
-        currState, listOfActionsTakenSoFar, costSoFar = fringe.pop();
+        curr = fringe.pop()
 
-        if problem.isGoalState(currState):
-            # print(costSoFar[currState][-1])
-            return listOfActionsTakenSoFar[currState]
+        if problem.isGoalState(curr):
+            for state, action, cost in edgeTo[curr]:
+                result.append(action)
+            return result
 
-        if (currState not in visited):
-            visited.append(currState)
-            
-            for nextState, nextAction, nextCost in problem.getSuccessors(currState):
-                # append the actions taken so far to get to currState
-                for prevAction in listOfActionsTakenSoFar[currState]:
-                    listOfActionsTakenSoFar[nextState].append(prevAction)
-                # append the next action to be taken to actionsTakenSoFar
-                listOfActionsTakenSoFar[nextState].append(nextAction)
+        for nextState, action, cost in problem.getSuccessors(curr):
+            if nextState not in visited:
+                fringe.push(nextState)
+                
+                # append previous actions taken to get to next state
+                edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                for prevStates in edgeTo[curr]:
+                    edgeTo[nextState].append(prevStates)
+                # append current action taken to get to next state
+                edgeTo[nextState].append((curr, action, cost))
 
+                # mark nextState as visited
+                visited.append(nextState)
 
-                # append the cost to get to curr state and the cost to get to next state
-                costSoFar[nextState].append(nextCost + sum(costSoFar[currState]))                
-
-                fringe.push((nextState, listOfActionsTakenSoFar, costSoFar))
-    return []
+    return result
 
 
 def uniformCostSearch(problem):
