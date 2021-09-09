@@ -110,25 +110,26 @@ def depthFirstSearch(problem):
             return result
 
         if curr not in visited:
+            # only want to append to visited when we explore it not when we add to the fringe
             visited.append(curr)
 
             for nextState, action, cost in problem.getSuccessors(curr):
-                fringe.push(nextState)
-                # append previous actions taken to get to next state
-                edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
-                for prevStates in edgeTo[curr]:
-                    edgeTo[nextState].append(prevStates)
-                # append current action taken to get to next state
-                edgeTo[nextState].append((curr, action, cost))
+                if nextState not in visited:
+                    fringe.push(nextState)
+                    # append previous actions taken to get to next state
+                    edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                    for prevStates in edgeTo[curr]:
+                        edgeTo[nextState].append(prevStates)
+                    # append current action taken to get to next state
+                    edgeTo[nextState].append((curr, action, cost))
 
     return result
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    
+    """Search the shallowest nodes in the search tree first."""    
    # BFS uses Queue data structure (FIFO)
     fringe = util.Queue()
+    # if we decide to append only when expanding, it's better if we push tuple of state, action onto the queue
     fringe.push(problem.getStartState())
 
     # keeps track of (state, action, cost) taken to get from previous state to current state
@@ -141,8 +142,47 @@ def breadthFirstSearch(problem):
     # will eventually hold the list of actions taken to get from start to goal state 
     result = []
 
-    # mark initial state as visited
-    visited.append(problem.getStartState())
+    # loop
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+
+        if problem.isGoalState(curr):
+            for state, action, cost in edgeTo[curr]:
+                result.append(action)
+            return result
+
+        if curr not in visited:
+            # correct implementation only appends to visited when expanding instead of appending when adding to fringe
+            visited.append(curr)
+
+            for nextState, action, cost in problem.getSuccessors(curr):
+                fringe.push(nextState)
+                
+                # append previous actions taken to get to next state
+                edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                for prevStates in edgeTo[curr]:
+                    edgeTo[nextState].append(prevStates)
+                # append current action taken to get to next state
+                edgeTo[nextState].append((curr, action, cost))
+
+    return result
+
+
+def uniformCostSearch(problem):
+    """Search the node of least total cost first."""
+    # UCS uses PriorityQueue data structure (FIFO based on priority -- smaller number => higher priority)
+    fringe = util.PriorityQueue()
+    fringe.push(problem.getStartState(), 0)
+
+    # keeps track of (state, action, cost) taken to get from previous state to current state
+    from collections import defaultdict
+    edgeTo = defaultdict(list)
+
+    # keeps track of nodes visted so far so we don't revisit them again
+    visited = []
+
+    # will eventually hold the list of actions taken to get from start to goal state 
+    result = []
 
     # loop
     while not fringe.isEmpty():
@@ -153,27 +193,29 @@ def breadthFirstSearch(problem):
                 result.append(action)
             return result
 
-        for nextState, action, cost in problem.getSuccessors(curr):
-            if nextState not in visited:
-                fringe.push(nextState)
-                
+        
+        if curr not in visited:
+            # append to visited as we explore the nodes
+            visited.append(curr)
+
+            for nextState, action, cost in problem.getSuccessors(curr): 
+
                 # append previous actions taken to get to next state
-                edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                # edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                totalCostSoFar = 0
                 for prevStates in edgeTo[curr]:
                     edgeTo[nextState].append(prevStates)
-                # append current action taken to get to next state
+                    prevState, prevAction, prevCost = prevStates
+                    totalCostSoFar += prevCost
+
+                # append current action, cost taken to get to next state
                 edgeTo[nextState].append((curr, action, cost))
 
-                # mark nextState as visited
-                visited.append(nextState)
+                # UCS picks the next cheapest node based on the total cost from start until that next node (not just the current cost from current node to next node)
+                totalCostSoFar += cost
+                fringe.update(nextState, totalCostSoFar)
 
     return result
-
-
-def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -184,8 +226,54 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # A* Search uses PriorityQueue data structure (FIFO based on priority -- smaller number => higher priority)
+    fringe = util.PriorityQueue()
+    fringe.push(problem.getStartState(), 0)
+
+    # keeps track of (state, action, cost) taken to get from previous state to current state
+    from collections import defaultdict
+    edgeTo = defaultdict(list)
+
+    # keeps track of nodes visted so far so we don't revisit them again
+    visited = []
+
+    # will eventually hold the list of actions taken to get from start to goal state 
+    result = []
+
+    # loop
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+
+        if problem.isGoalState(curr):
+            for state, action, cost in edgeTo[curr]:
+                result.append(action)
+            return result
+
+        
+        if curr not in visited:
+            # append to visited as we explore the nodes
+            visited.append(curr)
+
+            for nextState, action, cost in problem.getSuccessors(curr): 
+
+                # append previous actions taken to get to next state
+                edgeTo[nextState] = [] # we clear the edgeTo array so that we only include one recent solution (in the case there is multiple solutions)
+                totalCostSoFar = 0
+                for prevStates in edgeTo[curr]:
+                    edgeTo[nextState].append(prevStates)
+                    prevState, prevAction, prevCost = prevStates
+                    totalCostSoFar += prevCost
+
+                # append current action, cost taken to get to next state
+                edgeTo[nextState].append((curr, action, cost))
+
+                # UCS picks the next cheapest node based on the total cost from start until that next node (not just the current cost from current node to next node)
+                totalCostSoFar += cost
+                # A* also takes into account the heuristic value along with the total edge cost
+                totalCostSoFar += heuristic(nextState, problem)
+                fringe.update(nextState, totalCostSoFar)
+
+    return result
 
 
 # Abbreviations
