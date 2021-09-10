@@ -287,22 +287,42 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
-        "*** YOUR CODE HERE ***"
+        
+        # bottomLeft, topLeft, bottomRight, topRight
+        self.areFourCornersVisited = (((1,1), False), ((1,top), False), ((right, 1), False), ((right, top), False))
+
+        
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.startingPosition
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        total = 0
+        
+        bottomLeft, topLeft, bottomRight, topRight = self.areFourCornersVisited
+        cornersList = [bottomLeft, topLeft, bottomRight, topRight]
+        for oneCorner, isVisited in cornersList:
+            if (isVisited):
+                total += 1
+        
+        allCornersVisited = total == 4
+
+        print("Total: ", total)
+
+        for corner in self.corners:
+            if ((corner == state) and allCornersVisited):
+                print("State: ", state)
+                print("Hello I am the goal")
+                return True
+        return False
+        
 
     def getSuccessors(self, state):
         """
@@ -315,6 +335,23 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
 
+        # check if the current state is one of the corners and if so, mark it as visited
+        index = 0
+        top, right = self.walls.height-2, self.walls.width-2
+        bottomLeft, topLeft, bottomRight, topRight = self.areFourCornersVisited
+        for corner in self.corners:
+            if (state == corner):
+                if (index == 0):
+                    self.areFourCornersVisited = (((1,1), True), topLeft, bottomRight, topRight)
+                elif (index == 1):
+                    self.areFourCornersVisited = (bottomLeft, ((1,top), True), bottomRight, topRight)
+                elif (index == 2):
+                    self.areFourCornersVisited = (bottomLeft, topLeft, ((right, 1), True), topRight)
+                elif (index == 3):
+                    self.areFourCornersVisited = (bottomLeft, topLeft, bottomRight, ((right, top), True))
+                print("I am visited..", state)
+            index += 1
+
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -324,7 +361,13 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                cost = 1
+                successors.append( ( nextState, action, cost) )
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
