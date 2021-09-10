@@ -101,6 +101,7 @@ def depthFirstSearch(problem):
     result = []
 
     # loop
+    count = 0
     while not fringe.isEmpty():
         curr = fringe.pop()
 
