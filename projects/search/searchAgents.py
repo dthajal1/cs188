@@ -34,6 +34,7 @@ description for details.
 Good luck and happy searching!
 """
 
+from math import inf
 from game import Directions
 from game import Agent
 from game import Actions
@@ -287,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
+        self.startingGameState = startingGameState
 
     def getStartState(self):
         """
@@ -319,18 +321,18 @@ class CornersProblem(search.SearchProblem):
 
         currentPosition, cornersVisited = state 
         bottomLeft, topLeft, bottomRight, topRight = cornersVisited
-        cornerIndex = 0 
-        for corner in self.corners:
-            if (currentPosition == corner):
-                if cornerIndex == 0:
-                    cornersVisited = (1, topLeft, bottomRight, topRight)
-                elif cornerIndex == 1:
-                    cornersVisited = (bottomLeft, 1, bottomRight, topRight)
-                elif cornerIndex == 2:
-                    cornersVisited = (bottomLeft, topLeft, 1, topRight)
-                elif cornerIndex == 3:
-                    cornersVisited = (bottomLeft, topLeft, bottomRight, 1)
-            cornerIndex += 1
+        # cornerIndex = 0 
+        # for corner in self.corners:
+        #     if (currentPosition == corner):
+        #         if cornerIndex == 0:
+        #             cornersVisited = (1, topLeft, bottomRight, topRight)
+        #         elif cornerIndex == 1:
+        #             cornersVisited = (bottomLeft, 1, bottomRight, topRight)
+        #         elif cornerIndex == 2:
+        #             cornersVisited = (bottomLeft, topLeft, 1, topRight)
+        #         elif cornerIndex == 3:
+        #             cornersVisited = (bottomLeft, topLeft, bottomRight, 1)
+        #     cornerIndex += 1
 
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
@@ -345,7 +347,22 @@ class CornersProblem(search.SearchProblem):
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             if not self.walls[nextx][nexty]:
+                
                 nextPosition = (nextx, nexty)
+                # for each nextPosition check if that is a corner and update accordingly
+                cornerIndex = 0 
+                for corner in self.corners:
+                    if (nextPosition == corner):
+                        if cornerIndex == 0:
+                            cornersVisited = (1, topLeft, bottomRight, topRight)
+                        elif cornerIndex == 1:
+                            cornersVisited = (bottomLeft, 1, bottomRight, topRight)
+                        elif cornerIndex == 2:
+                            cornersVisited = (bottomLeft, topLeft, 1, topRight)
+                        elif cornerIndex == 3:
+                            cornersVisited = (bottomLeft, topLeft, bottomRight, 1)
+                    cornerIndex += 1
+
                 nextState = (nextPosition, cornersVisited)
                 cost = 1
                 successors.append( ( nextState, action, cost) )
@@ -383,8 +400,178 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    # the closer to the goal state, the closer to zero the returned heuristic value will be
+    currentPosition, areCornersVisited = state
+
+    heuristicValue = 0
+
+    unvisitedCorners = getUnvisitedCorners(areCornersVisited, corners)
+
+    # currentPosition, areCornersVisited = state
+    # heuristicValue = 0
+    mHToUnvisitedCorners = []
+    for corner in unvisitedCorners:
+        mHToUnvisitedCorners.append(util.manhattanDistance(corner, currentPosition))
+        # mHToUnvisitedCorners.append(mazeDistance(currentPosition, corner, problem.startingGameState))
+
+    if mHToUnvisitedCorners:
+        heuristicValue = max(mHToUnvisitedCorners)
+
+    return heuristicValue
+
+    # try combination of manhattan distance to uneaten corners and the distance from one corner to another
+    # loop until all unvisited corners are visited and get the distance between curr position and the closest corner as you go along
+    # print("unvisited corners..", unvisitedCorners)
+    if len(unvisitedCorners) == 3:
+        # handle base case
+        bottomLeft, topLeft, bottomRight, topRight = corners
+        
+        # special corner cases
+        case1 = [bottomLeft, bottomRight, topRight]
+        case3 = [topLeft, bottomRight, topRight]
+         # regular cases
+        case2 = [bottomLeft, topLeft, topRight]
+        case4 = [bottomLeft, topLeft, bottomRight]
+
+        if (set(case1) == set(unvisitedCorners)):
+            # print("Len 3: Case 1 in action...")
+            # mh from current position to topRight
+            heuristicValue += util.manhattanDistance(currentPosition, case1[2])
+            # mh from topRight to bottomRight
+            heuristicValue += util.manhattanDistance(case1[2], case1[1])
+            # mh from bottomRight to bottomLeft
+            heuristicValue += util.manhattanDistance(case1[1], case1[0])
+
+        elif set(case3) == set(unvisitedCorners):
+            # print("Len 3: case 3 in action...")
+            # mh from current position to bottomRight
+            heuristicValue += util.manhattanDistance(currentPosition, case1[1])
+            # mh from bottomRight to topRight
+            heuristicValue += util.manhattanDistance(case1[1], case1[2])
+            # mh from topRight to topLeft
+            heuristicValue += util.manhattanDistance(case1[2], case1[0])
+        else:
+            # refactor this (same code)
+            # print("Len 3: Case 2 or 4 in action..")
+            curr = currentPosition
+            while len(unvisitedCorners) > 0:
+                mHToUnvisitedCorners = []
+                for corner in unvisitedCorners:
+                    mHToUnvisitedCorners.append((corner, util.manhattanDistance(curr, corner)))
+                closestCorner, minHeuristicValue = getMin(mHToUnvisitedCorners)
+                heuristicValue += minHeuristicValue
+                curr = closestCorner
+                unvisitedCorners.remove(closestCorner)
+    else:
+        # print("Regular len in action...")
+        curr = currentPosition
+        while len(unvisitedCorners) > 0:
+            mHToUnvisitedCorners = []
+            for corner in unvisitedCorners:
+                mHToUnvisitedCorners.append((corner, util.manhattanDistance(curr, corner)))
+            closestCorner, minHeuristicValue = getMin(mHToUnvisitedCorners)
+            heuristicValue += minHeuristicValue
+            curr = closestCorner
+            unvisitedCorners.remove(closestCorner)
+
+        
+
+            
+        # (bottomLeft, bottomRight, topRight) -- 1
+
+        # (bottomLeft, topLeft, topRight) -- 2
+
+        # (topLeft, bottomRight, topRight) -- 3
+
+        # (bottomLeft, topLeft, bottomRight) -- 4
+
+        # return 0
+
+#   # maze distance
+#     curr = currentPosition
+#     while len(unvisitedCorners) > 0:
+#         mHToUnvisitedCorners = []
+#         for corner in unvisitedCorners:
+#             mHToUnvisitedCorners.append((corner, mazeDistance(curr, corner, problem.gameState)))
+#         closestCorner, minHeuristicValue = getMin(mHToUnvisitedCorners)
+#         heuristicValue += minHeuristicValue
+#         curr = closestCorner
+#         unvisitedCorners.remove(closestCorner)
+    
+    # curr = currentPosition
+    # while len(unvisitedCorners) > 0:
+    #     mHToUnvisitedCorners = []
+    #     mDToUnvisitedCorners = []
+    #     for corner in unvisitedCorners:
+    #         mHToUnvisitedCorners.append((corner, util.manhattanDistance(curr, corner)))
+    #         mDToUnvisitedCorners.append((corner, mazeDistance(curr, corner, problem.gameState)))
+    #     closestMHCorner, minMHHeuristicValue = getMin(mHToUnvisitedCorners)
+    #     closestMDCorner, minMDHeuristicValue = getMin(mDToUnvisitedCorners)
+    
+    #     minHeuristicValue = minMHHeuristicValue
+    #     closestCorner = closestMHCorner
+    #     if (minMHHeuristicValue < minMDHeuristicValue):
+    #         minHeuristicValue = minMDHeuristicValue
+    #         closestCorner = closestMDCorner
+
+    #     heuristicValue += minHeuristicValue
+    #     curr = closestCorner
+
+    #     unvisitedCorners.remove(closestCorner)
+
+    return heuristicValue
+
+
+  
+    
+
+    # manhattan distance
+    # currentPosition, areCornersVisited = state
+    # heuristicValue = 0
+    # mHToUnvisitedCorners = []
+    # cornerIndex = 0
+    # for isCornerVisited in areCornersVisited:
+    #     corner = corners[cornerIndex]
+    #     if not isCornerVisited:
+    #         mHToUnvisitedCorners.append(util.manhattanDistance(currentPosition, corner))
+    #     cornerIndex += 1
+
+    # if len(mHToUnvisitedCorners) != 0:
+    #     heuristicValue = min(mHToUnvisitedCorners)
+    
+    # return heuristicValue
+def euclideanDistance(xy1, xy2 ):
+    "Returns the Euclidean distance between two points."
+    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
+
+def getUnvisitedCorners(areCornersVisited, corners):
+    '''
+        Gets the unvisited corners as a list.
+    '''
+    unvisitedCorners = []
+    cornerIndex = 0
+    for isCornerVisited in areCornersVisited:
+        if not isCornerVisited:
+            unvisitedCorners.append(corners[cornerIndex])
+        cornerIndex += 1
+    return unvisitedCorners
+
+def getMin(arrOfTuples):
+    """ Helper function for corners problem heuristic. Gets min value and the closest corner
+        from the array of tuples: [(corner, value), (corner1, value1),..]
+
+    Returns (None, inf) if arrOfTuples is empty
+    """
+    closestCorner = None
+    from math import inf
+    minHeuristicValue = inf
+
+    for corner, heuristicValue in arrOfTuples:
+        if heuristicValue < minHeuristicValue:
+            minHeuristicValue = heuristicValue
+            closestCorner = corner
+
+    return (closestCorner, minHeuristicValue)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -477,8 +664,19 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    
+    heuristic = 0
+    distToFoods = []
+    listOfFoods = foodGrid.asList()
+
+    for foodPosition in listOfFoods:
+        distToFoods.append(mazeDistance(position, foodPosition, problem.startingGameState))
+        # mHToFoods.append(euclideanDistance(position, foodPosition))
+        # mHToFoods.append(util.manhattanDistance(position, foodPosition))
+    if (distToFoods):
+        heuristic += max(distToFoods)
+
+    return heuristic
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
