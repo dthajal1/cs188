@@ -319,7 +319,7 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
         currentPosition, cornersVisited = state 
-        bottomLeft, topLeft, bottomRight, topRight = cornersVisited
+        from copy import deepcopy
 
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
@@ -336,21 +336,25 @@ class CornersProblem(search.SearchProblem):
             if not self.walls[nextx][nexty]:
                 nextPosition = (nextx, nexty)
 
-                # for each nextPosition check if that is a corner and update accordingly
+                # for each nextPosition check if that position is a corner and update cornersVisisted appropriately
+                from copy import deepcopy
+                newCornersVisited = deepcopy(cornersVisited)
+                bottomLeft, topLeft, bottomRight, topRight = newCornersVisited
+
                 cornerIndex = 0 
                 for corner in self.corners:
                     if (nextPosition == corner):
                         if cornerIndex == 0:
-                            cornersVisited = (1, topLeft, bottomRight, topRight)
+                            newCornersVisited = (1, topLeft, bottomRight, topRight)
                         elif cornerIndex == 1:
-                            cornersVisited = (bottomLeft, 1, bottomRight, topRight)
+                            newCornersVisited = (bottomLeft, 1, bottomRight, topRight)
                         elif cornerIndex == 2:
-                            cornersVisited = (bottomLeft, topLeft, 1, topRight)
+                            newCornersVisited = (bottomLeft, topLeft, 1, topRight)
                         elif cornerIndex == 3:
-                            cornersVisited = (bottomLeft, topLeft, bottomRight, 1)
+                            newCornersVisited = (bottomLeft, topLeft, bottomRight, 1)
                     cornerIndex += 1
 
-                nextState = (nextPosition, cornersVisited)
+                nextState = (nextPosition, newCornersVisited)
                 cost = 1
                 successors.append( ( nextState, action, cost) )
 
