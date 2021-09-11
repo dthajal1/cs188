@@ -401,10 +401,6 @@ def cornersHeuristic(state, problem):
 
     return heuristicValue
 
-def euclideanDistance(xy1, xy2 ):
-    "Returns the Euclidean distance between two points."
-    return ( (xy1[0] - xy2[0]) ** 2 + (xy1[1] - xy2[1]) ** 2 ) ** 0.5
-
 def getUnvisitedCorners(areCornersVisited, corners):
     '''
         Gets the unvisited corners as a list.
@@ -416,23 +412,6 @@ def getUnvisitedCorners(areCornersVisited, corners):
             unvisitedCorners.append(corners[cornerIndex])
         cornerIndex += 1
     return unvisitedCorners
-
-def getMin(arrOfTuples):
-    """ Helper function for corners problem heuristic. Gets min value and the closest corner
-        from the array of tuples: [(corner, value), (corner1, value1),..]
-
-    Returns (None, inf) if arrOfTuples is empty
-    """
-    closestCorner = None
-    from math import inf
-    minHeuristicValue = inf
-
-    for corner, heuristicValue in arrOfTuples:
-        if heuristicValue < minHeuristicValue:
-            minHeuristicValue = heuristicValue
-            closestCorner = corner
-
-    return (closestCorner, minHeuristicValue)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -567,8 +546,7 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.uniformCostSearch(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -603,8 +581,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         """
         x,y = state
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.food[x][y]
 
 def mazeDistance(point1, point2, gameState):
     """
