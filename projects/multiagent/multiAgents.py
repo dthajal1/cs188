@@ -90,12 +90,12 @@ class ReflexAgent(Agent):
             mhDistToGhosts.append(manhattanDistance(ghostState.getPosition(), newPos))
         
         if (len(mhDistToFoods) > 0):
+            # we use reciprocal because closer food => smaller denominator => higher score
             return successorGameState.getScore() + 0.5/min(mhDistToFoods)
         else:
+            # closer ghost => lower score 
             return successorGameState.getScore() + min(mhDistToGhosts)
-
-        # the closer the ghost, the less score we want to give
-        # return successorGameState.getScore() + min(mhDistToGhosts)
+            
         # return successorGameState.getScore() # default
 
 def scoreEvaluationFunction(currentGameState):
