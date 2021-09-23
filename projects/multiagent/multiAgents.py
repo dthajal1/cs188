@@ -340,10 +340,35 @@ def betterEvaluationFunction(currentGameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION: I combined the currentGameState score and 
+            reciprocal of minimum manhattan distance from 
+            current pacman position to all food pellets.
+            If there are no food pellets then just stay away
+            from the ghosts.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    pacmanPos = currentGameState.getPacmanPosition()
+    foods = currentGameState.getFood()
+    ghostStates = currentGameState.getGhostStates()
+
+    # manhattan distance to the food
+    mhDistToFoods = []
+    for foodPos in foods.asList():
+        mhDistToFoods.append(manhattanDistance(foodPos, pacmanPos))
+        
+    # manhattan distance to ghost
+    mhDistToGhosts = []
+    for ghostState in ghostStates:
+        mhDistToGhosts.append(manhattanDistance(ghostState.getPosition(), pacmanPos))
+    
+    if (len(mhDistToFoods) > 0):
+        # we use reciprocal because closer food => smaller denominator => higher score
+        return currentGameState.getScore() + 0.5/min(mhDistToFoods)
+    else:
+        # closer ghost => lower score 
+        return currentGameState.getScore() + min(mhDistToGhosts)
+
 
 # Abbreviation
 better = betterEvaluationFunction
