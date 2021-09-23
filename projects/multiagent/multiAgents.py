@@ -288,7 +288,52 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def expectimaxAlgorithm(gameState, agentIndex, currDepth):
+            if currDepth == self.depth or gameState.isWin() or gameState.isLose():
+                # Terminal state => return state utility
+                return self.evaluationFunction(gameState)
+
+            if agentIndex == 0:
+                # pacman's turn -- maximizer
+                bestVal = -inf
+                actions = gameState.getLegalActions(agentIndex)
+                for action in actions:  
+                    successorGameState = gameState.generateSuccessor(agentIndex, action)
+                    possibleBestVal = expectimaxAlgorithm(successorGameState, agentIndex + 1, currDepth)
+                    bestVal = max(bestVal, possibleBestVal)
+                return bestVal
+            else:
+                # ghosts' turn -- expectimizer (expected value)
+                bestVal = 0
+                actions = gameState.getLegalActions(agentIndex)
+                for action in actions:  
+                    successorGameState = gameState.generateSuccessor(agentIndex, action)
+                    probability = 1/len(actions)
+                    if agentIndex + 1 == gameState.getNumAgents():
+                        # this is the last ghost so pacman will go next
+                        # and since we are done with iterating through pacman and all ghosts we can now increment the depth by 1
+                        possibleBestVal = expectimaxAlgorithm(successorGameState, 0, currDepth + 1)
+                    else:
+                        # there are other ghosts left waiting for their turn
+                        possibleBestVal = expectimaxAlgorithm(successorGameState, agentIndex + 1, currDepth)
+                    # expected value
+                    bestVal += probability * possibleBestVal
+                return bestVal
+
+        # Collect legal moves and successor states
+        legalMoves = gameState.getLegalActions(self.index)
+
+        # we start with our pacman's turn -- maximizer
+        bestVal = -inf
+        actionToTake = Directions.STOP
+        for action in legalMoves:
+            successorGameState = gameState.generateSuccessor(self.index, action)
+            possibleBestVal = expectimaxAlgorithm(successorGameState, self.index + 1, 0)
+            if (possibleBestVal > bestVal):
+                bestVal = possibleBestVal
+                actionToTake = action
+
+        return actionToTake   
 
 def betterEvaluationFunction(currentGameState):
     """
