@@ -192,6 +192,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions(self.index)
 
+        # we start with our pacman's turn -- maximizer
         bestVal = -inf
         actionToTake = Directions.STOP
         for action in legalMoves:
