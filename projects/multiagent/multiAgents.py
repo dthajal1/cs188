@@ -268,6 +268,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 bestVal = possibleBestVal
                 actionToTake = action
             
+            # alpha-beta pruning
             if bestVal > beta:
                 return bestVal
             alpha = max(alpha, bestVal)
