@@ -214,7 +214,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        def minimaxAlgorithm(gameState, agentIndex, currDepth, alpha, beta):
+        def minimaxWithalphabetaAlgorithm(gameState, agentIndex, currDepth, alpha, beta):
             if currDepth == self.depth or gameState.isWin() or gameState.isLose():
                 # Terminal state => return state utility
                 return self.evaluationFunction(gameState)
@@ -225,7 +225,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 actions = gameState.getLegalActions(agentIndex)
                 for action in actions:  
                     successorGameState = gameState.generateSuccessor(agentIndex, action)
-                    possibleBestVal = minimaxAlgorithm(successorGameState, agentIndex + 1, currDepth, alpha, beta)
+                    possibleBestVal = minimaxWithalphabetaAlgorithm(successorGameState, agentIndex + 1, currDepth, alpha, beta)
                     bestVal = max(bestVal, possibleBestVal)
 
                     # alpha-beta pruning
@@ -242,10 +242,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                     if agentIndex + 1 == gameState.getNumAgents():
                         # this is the last ghost so pacman will go next
                         # and since we are done with iterating through pacman and all ghosts we can now increment the depth by 1
-                        possibleBestVal = minimaxAlgorithm(successorGameState, 0, currDepth + 1, alpha, beta)
+                        possibleBestVal = minimaxWithalphabetaAlgorithm(successorGameState, 0, currDepth + 1, alpha, beta)
                     else:
                         # there are other ghosts left waiting for their turn
-                        possibleBestVal = minimaxAlgorithm(successorGameState, agentIndex + 1, currDepth, alpha, beta)
+                        possibleBestVal = minimaxWithalphabetaAlgorithm(successorGameState, agentIndex + 1, currDepth, alpha, beta)
                     bestVal = min(bestVal, possibleBestVal)
 
                     # alpha-beta pruning
@@ -263,7 +263,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         actionToTake = Directions.STOP
         for action in legalMoves:
             successorGameState = gameState.generateSuccessor(self.index, action)
-            possibleBestVal = minimaxAlgorithm(successorGameState, self.index + 1, 0, alpha, beta)
+            possibleBestVal = minimaxWithalphabetaAlgorithm(successorGameState, self.index + 1, 0, alpha, beta)
             if (possibleBestVal > bestVal):
                 bestVal = possibleBestVal
                 actionToTake = action
