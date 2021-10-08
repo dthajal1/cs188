@@ -189,3 +189,37 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
 
+        # compute predecessors of all states
+        predecessors = collections.defaultdict(set)
+        for state in self.mdp.getStates():
+            for action in self.mdp.getPossibleActions(state):
+                for nextState, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+                    if state not in predecessors[nextState]:
+                        predecessors[nextState].add(state)
+
+        # Initialize an empty priority queue
+        pq = util.PriorityQueue()
+        # push the error (actual - whatWeGot) on to the pq
+        for state in self.mdp.getStates():
+            if not self.mdp.isTerminal(state):
+                bestQValue = max([self.getQValue(state, action) for action in self.mdp.getPossibleActions(state)])
+                diff = abs(self.values[state] - bestQValue)
+
+                # we push negative value because pq is a min heap but we want
+                # to prioritize updating states that have higher error
+                pq.update(state, -diff)
+
+        # algo
+        for _ in range(self.iterations):
+            if pq.isEmpty():
+                break  
+            highestErrState = pq.pop()
+            if not self.mdp.isTerminal(highestErrState):
+                self.values[highestErrState] = max([self.getQValue(highestErrState, action) for action in self.mdp.getPossibleActions(highestErrState)])
+            
+            for predecessor in predecessors[highestErrState]:
+                if not self.mdp.isTerminal(predecessor):
+                    bestQValue = max([self.getQValue(predecessor, action) for action in self.mdp.getPossibleActions(predecessor)])
+                    diff = abs(self.values[predecessor] - bestQValue)
+                    if diff > self.theta:
+                        pq.update(predecessor, -diff)
