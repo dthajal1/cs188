@@ -158,6 +158,16 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        # V_k+1(s) ← max_a ∑_s′ T(s,a,s′)[R(s,a,s′)+γV_k(s′)]
+        for i in range(self.iterations):
+            allStates = self.mdp.getStates()
+            # wrap around when all states are updated exactly once
+            stateToUpdate = allStates[i % len(allStates)]
+            if self.mdp.isTerminal(stateToUpdate):
+                continue
+            else:
+                self.values[stateToUpdate] = max([self.getQValue(stateToUpdate, action) for action in self.mdp.getPossibleActions(stateToUpdate)])
+                
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
