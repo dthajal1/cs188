@@ -105,7 +105,6 @@ class QLearningAgent(ReinforcementAgent):
         """
         # Pick Action
         legalActions = self.getLegalActions(state)
-        
         if util.flipCoin(self.epsilon):
           return random.choice(legalActions)
         else:
