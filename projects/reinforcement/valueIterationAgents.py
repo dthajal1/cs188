@@ -158,7 +158,7 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
-        # V_k+1(s) ← max_a ∑_s′ T(s,a,s′)[R(s,a,s′)+γV_k(s′)]
+        # V_k+1(s) <- max_a sum_s′ T(s,a,s′)[R(s,a,s′)+ discount * V_k(s′)]
         for i in range(self.iterations):
             allStates = self.mdp.getStates()
             # wrap around when all states are updated exactly once
@@ -187,8 +187,6 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
-        "*** YOUR CODE HERE ***"
-
         # compute predecessors of all states
         predecessors = collections.defaultdict(set)
         for state in self.mdp.getStates():

@@ -42,7 +42,6 @@ class QLearningAgent(ReinforcementAgent):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
-        "*** YOUR CODE HERE ***"
         self.qValues = util.Counter() # self.qValues[(state, action)] : value
 
     def getQValue(self, state, action):
@@ -51,7 +50,6 @@ class QLearningAgent(ReinforcementAgent):
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        "*** YOUR CODE HERE ***"
         return self.qValues[(state, action)]
 
 
@@ -62,7 +60,6 @@ class QLearningAgent(ReinforcementAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        "*** YOUR CODE HERE ***"
         # hadle case where the state is terminal
         legalActions = self.getLegalActions(state)
         if len(legalActions) == 0:
@@ -75,7 +72,6 @@ class QLearningAgent(ReinforcementAgent):
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
-        "*** YOUR CODE HERE ***"
         # Access QValue by calling getQValue
         # you should break ties randomly for better behavior. The random.choice() function will help
 
@@ -117,7 +113,7 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        # sample = R(s, a, s') + γ * max_a' Q(s', a')
+        # sample = R(s, a, s') + discount * max_a' Q(s', a')
         # Q(s, a) = (1 - alpha) Q(s, a) + alpha * sample
         if self.getValue(nextState) == None:
           sample = reward + self.discount * 0
@@ -185,7 +181,7 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        # Q(s,a) = (∑ i=1 to n) f_i(s,a) * w_i
+        # Q(s,a) = (sum_i=1 to n) f_i(s,a) * w_i
         qValue = 0
         for feature, weight in self.featExtractor.getFeatures(state, action).items():
           qValue += self.getWeights()[feature] * weight
@@ -196,8 +192,8 @@ class ApproximateQAgent(PacmanQAgent):
         """
            Should update your weights based on transition
         """
-        # w_i ← w_i + α * difference⋅* f_i(s,a)
-        # difference = (r + γ max_a′ Q(s′,a′)) − Q(s,a)
+        # w_i <- w_i + α * difference⋅* f_i(s,a)
+        # difference = (r + discount *  max_a′ Q(s′,a′)) − Q(s,a)
         if self.getValue(nextState) == None:
           difference = reward - self.getQValue(state, action)
         else:
