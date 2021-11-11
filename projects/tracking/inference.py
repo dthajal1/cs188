@@ -75,6 +75,7 @@ class DiscreteDistribution(dict):
         {}
         """
         total = self.total()
+        if total == 0: return
         for key, val in self.items():
             self[key] = val / total
 
@@ -294,8 +295,16 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # Beliefs represent the probability that the ghost is at a particular location
+        # B(X_t) proportional to P(e_t | x_t) * B'(X_t)
+
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+
+        for pos in self.allPositions:
+            # P(noisyDistance | pacmanPosition, ghostPosition)
+            probability = self.getObservationProb(observation, pacmanPosition, pos, jailPosition)
+            self.beliefs[pos] = probability * self.beliefs[pos]
 
         self.beliefs.normalize()
 
