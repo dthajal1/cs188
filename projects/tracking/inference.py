@@ -307,6 +307,7 @@ class ExactInference(InferenceModule):
             self.beliefs[pos] = probability * self.getBeliefDistribution()[pos]
 
         self.beliefs.normalize()
+        # need to normalize because of the proportional instead of equality
 
     def elapseTime(self, gameState):
         """
@@ -317,8 +318,22 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # Time Elapse Algo
+        # B(X_t) = Sum_over_all_previos_pos(P(X_t | X_(t-1)) * B(X_(t-1)))
+        # B(X_(t+1)) = Sum_over_all_previos_pos(P(X_(t+1) | X_(t)) * B(X_(t)))
+
+        updatedBelief = DiscreteDistribution()
+
+        for oldPos in self.allPositions:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            # newPosDist[pos] <= P(X_(t+1) | X_t)
+            # probability that ghost position is at pos at time t + 1 
+            # given ghost position is at oldPos at time t
+
+            for newPos, prob in newPosDist.items():
+                updatedBelief[newPos] += prob * self.getBeliefDistribution()[oldPos]
+
+        self.beliefs = updatedBelief
 
     def getBeliefDistribution(self):
         return self.beliefs
