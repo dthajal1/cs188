@@ -304,7 +304,7 @@ class ExactInference(InferenceModule):
         for pos in self.allPositions:
             # P(noisyDistance | pacmanPosition, ghostPosition)
             probability = self.getObservationProb(observation, pacmanPosition, pos, jailPosition)
-            self.beliefs[pos] = probability * self.beliefs[pos]
+            self.beliefs[pos] = probability * self.getBeliefDistribution()[pos]
 
         self.beliefs.normalize()
 
