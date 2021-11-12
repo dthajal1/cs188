@@ -400,6 +400,8 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
+        # X_(t) = P(X_t | X_(t-1))
+        
         updatedParticles = []
 
         for oldPos in self.particles:
@@ -449,8 +451,14 @@ class JointParticleFilter(ParticleFilter):
         uniform prior.
         """
         self.particles = []
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        
+        cartesianProduct = itertools.product(self.legalPositions, repeat=self.numGhosts)
+        tuplesOfPossiblePos = list(cartesianProduct)
+
+        random.shuffle(tuplesOfPossiblePos)
+
+        for i in range(len(tuplesOfPossiblePos)):
+            self.particles.append(tuplesOfPossiblePos[i % len(tuplesOfPossiblePos)])
 
     def addGhostAgent(self, agent):
         """
