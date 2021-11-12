@@ -374,8 +374,26 @@ class ParticleFilter(InferenceModule):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # weight = P(E_(t) | X_(t))
+        
+        pacmanPos = gameState.getPacmanPosition()
+        jailPos = self.getJailPosition()
+
+        weightDistribution = DiscreteDistribution()
+        for pos in self.particles:
+            prob = self.getObservationProb(observation, pacmanPos, pos, jailPos)
+            weightDistribution[pos] += prob
+
+        if weightDistribution.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+
+        weightDistribution.normalize()
+
+        self.particles = []
+        for _ in range(self.numParticles):
+            self.particles.append(weightDistribution.sample())
+
 
     def elapseTime(self, gameState):
         """
