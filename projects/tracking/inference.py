@@ -17,7 +17,7 @@ import random
 import busters
 import game
 
-from util import manhattanDistance, raiseNotDefined
+from util import manhattanDistance, raiseNotDefined, sample
 
 
 class DiscreteDistribution(dict):
@@ -490,8 +490,34 @@ class JointParticleFilter(ParticleFilter):
         be reinitialized by calling initializeUniformly. The total method of
         the DiscreteDistribution may be useful.
         """
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # weight = P(E_(t) | X_(t)) for each ghost
+
+        pacmanPos = gameState.getPacmanPosition()
+        
+        weightDistribution = DiscreteDistribution()
+
+        # weightDistribution = self.getBeliefDistribution()
+        # for tuplesOfPos in weightDistribution:
+        #     for i in range(self.numGhosts):
+        #         prob = self.getObservationProb(observation[i], pacmanPos, tuplesOfPos[i], self.getJailPosition(i))
+        #         weightDistribution[tuplesOfPos] *= prob
+
+        for tuplesOfPos in self.particles:
+            prob = 1
+            for i in range(self.numGhosts):
+                prob *= self.getObservationProb(observation[i], pacmanPos, tuplesOfPos[i], self.getJailPosition(i))
+            weightDistribution[tuplesOfPos] += prob
+
+        if weightDistribution.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+
+        weightDistribution.normalize()
+
+        self.particles = []
+        for _ in range(self.numParticles):
+            sample = weightDistribution.sample()
+            self.particles.append(sample)
 
     def elapseTime(self, gameState):
         """
@@ -503,10 +529,7 @@ class JointParticleFilter(ParticleFilter):
             newParticle = list(oldParticle)  # A list of ghost positions
 
             # now loop through and update each entry in newParticle...
-            "*** YOUR CODE HERE ***"
-            raiseNotDefined()
 
-            """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
