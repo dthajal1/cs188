@@ -114,7 +114,6 @@ class RegressionModel(object):
                 to be used for training
         Returns: a loss node
         """
-        "*** YOUR CODE HERE ***"
         y_pred = self.run(x)
         loss = nn.SquareLoss(y_pred, y)
         return loss
@@ -155,7 +154,17 @@ class DigitClassificationModel(object):
     """
     def __init__(self):
         # Initialize your model parameters here
-        "*** YOUR CODE HERE ***"
+        # f(x) = relu(x * W1 + b1) * W2 + b2
+        # (1 by 784) * (784 by 100) = (1 by 100)
+        # (1 by 100) + (1 by 100) = (1 by 100)
+
+        # (1 by 100) * (100 by 10) = (1 by 10)
+        # (1 by 10) + (1 by 10) = (1 by 10)
+        hidden_layer_size = 200
+        self.W1 = nn.Parameter(784, hidden_layer_size)
+        self.W2 = nn.Parameter(hidden_layer_size, 10)
+        self.b1 = nn.Parameter(1, hidden_layer_size)
+        self.b2 = nn.Parameter(1, 10)
 
     def run(self, x):
         """
@@ -171,7 +180,19 @@ class DigitClassificationModel(object):
             A node with shape (batch_size x 10) containing predicted scores
                 (also called logits)
         """
-        "*** YOUR CODE HERE ***"
+        # f(x) = relu(x * W1 + b1) * W2 + b2
+        # (1 by 784) * (784 by 100) = (1 by 100)
+        # (1 by 100) + (1 by 100) = (1 by 100)
+
+        # (1 by 100) * (100 by 10) = (1 by 10)
+        # (1 by 10) + (1 by 10) = (1 by 10)
+
+        x_w1 = nn.Linear(x, self.W1)
+        input = nn.AddBias(x_w1, self.b1)
+        relu = nn.ReLU(input)
+        relu_w2 = nn.Linear(relu, self.W2)
+        output = nn.AddBias(relu_w2, self.b2)
+        return output
 
     def get_loss(self, x, y):
         """
@@ -186,13 +207,27 @@ class DigitClassificationModel(object):
             y: a node with shape (batch_size x 10)
         Returns: a loss node
         """
-        "*** YOUR CODE HERE ***"
+        logits = self.run(x)
+        true_labels = y
+        return nn.SoftmaxLoss(logits, true_labels)
 
     def train(self, dataset):
         """
         Trains the model.
         """
-        "*** YOUR CODE HERE ***"
+        batch_size = 200
+        learning_rate = -0.09
+        validation_accuracy = 0
+        while validation_accuracy <= 0.98:
+            for x, y in dataset.iterate_once(batch_size):
+                params = [self.W1, self.W2, self.b1, self.b2]
+                grad_wrt_W1, grad_wrt_W2, grad_wrt_b1, grad_wrt_b2 = nn.gradients(self.get_loss(x, y), params)
+                self.W1.update(grad_wrt_W1, learning_rate)
+                self.W2.update(grad_wrt_W2, learning_rate)
+                self.b1.update(grad_wrt_b1, learning_rate)
+                self.b2.update(grad_wrt_b2, learning_rate)
+
+                validation_accuracy = dataset.get_validation_accuracy()
 
 class LanguageIDModel(object):
     """
