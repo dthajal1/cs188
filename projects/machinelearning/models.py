@@ -158,7 +158,7 @@ class DigitClassificationModel(object):
 
         # (1 by 100) * (100 by 10) = (1 by 10)
         # (1 by 10) + (1 by 10) = (1 by 10)
-        hidden_layer_size = 200
+        hidden_layer_size = 300
         self.W1 = nn.Parameter(784, hidden_layer_size)
         self.W2 = nn.Parameter(hidden_layer_size, 10)
         self.b1 = nn.Parameter(1, hidden_layer_size)
@@ -256,7 +256,7 @@ class LanguageIDModel(object):
         # W_hidden = (d by 100)
         # (1 by 100)
 
-        hidden_layer_size = 100
+        hidden_layer_size = 300
 
         self.W = nn.Parameter(self.num_chars, hidden_layer_size)
         self.W_hidden = nn.Parameter(hidden_layer_size, hidden_layer_size)
@@ -336,9 +336,9 @@ class LanguageIDModel(object):
         Trains the model.
         """
         batch_size = 100
-        learning_rate = -0.09
+        learning_rate = -0.08
         validation_accuracy = 0
-        while validation_accuracy < 0.83:
+        while validation_accuracy <= 0.85:
             for x, y in dataset.iterate_once(batch_size):
                 params = [self.W, self.W_hidden, self.b1, self.b2]
                 grad_wrt_W, grad_wrt_W_hidden, grad_wrt_b1, grad_wrt_b2 = nn.gradients(self.get_loss(x, y), params)
