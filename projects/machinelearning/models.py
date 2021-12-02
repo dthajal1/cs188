@@ -296,6 +296,9 @@ class LanguageIDModel(object):
         # h_i = relu(z_(i - 1)  + b)
         # z_0 = x_0 * W
         # z_i = x_i * W + h_i * W_hidden
+        # z_i = (1 by 100)
+        # resulting vector should be (1 by 5) thus multiply z_i by another vector
+        # (1 by 100) * (100 by 5) = (1 by 5)
 
         z_prev = None
         for i, x in enumerate(xs):
