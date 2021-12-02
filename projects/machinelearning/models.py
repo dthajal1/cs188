@@ -56,9 +56,7 @@ class PerceptronModel(object):
                 true_label = nn.as_scalar(y)
                 if y_pred != true_label:
                     self.w.update(x, true_label)
-                    keep_going = True
-
-                
+                    keep_going = True                
 
 class RegressionModel(object):
     """
@@ -246,7 +244,25 @@ class LanguageIDModel(object):
         self.languages = ["English", "Spanish", "Finnish", "Dutch", "Polish"]
 
         # Initialize your model parameters here
-        "*** YOUR CODE HERE ***"
+        # h_i = relu(z_(i - 1)  + b)
+        # z_0 = x_0 * W
+        # z_i = x_i * W + h_i * W_hidden
+
+        # x_0 = (1 by self.num_chars)
+        # W = (self.num_chars by 100)
+        # (1 by 100)
+
+        # h_i = (1 by d)
+        # W_hidden = (d by 100)
+        # (1 by 100)
+
+        hidden_layer_size = 100
+
+        self.W = nn.Parameter(self.num_chars, hidden_layer_size)
+        self.W_hidden = nn.Parameter(hidden_layer_size, hidden_layer_size)
+
+        self.b1 = nn.Parameter(1, hidden_layer_size)
+        self.b2 = nn.Parameter(hidden_layer_size, 5)
 
     def run(self, xs):
         """
@@ -277,7 +293,25 @@ class LanguageIDModel(object):
             A node with shape (batch_size x 5) containing predicted scores
                 (also called logits)
         """
-        "*** YOUR CODE HERE ***"
+        # h_i = relu(z_(i - 1)  + b)
+        # z_0 = x_0 * W
+        # z_i = x_i * W + h_i * W_hidden
+
+        z_prev = None
+        for i, x in enumerate(xs):
+            if i == 0:
+                z = nn.Linear(x, self.W)
+                z_prev = z
+            else:
+                xi_W = nn.Linear(x, self.W)
+
+                h_i = nn.ReLU(nn.AddBias(z_prev, self.b1))
+
+                hi_Whidden = nn.Linear(h_i, self.W_hidden)
+
+                z = nn.Add(xi_W, hi_Whidden)
+                z_prev = z
+        return nn.Linear(z, self.b2)
 
     def get_loss(self, xs, y):
         """
@@ -293,10 +327,25 @@ class LanguageIDModel(object):
             y: a node with shape (batch_size x 5)
         Returns: a loss node
         """
-        "*** YOUR CODE HERE ***"
+        logits = self.run(xs)
+        true_labels = y
+        return nn.SoftmaxLoss(logits, true_labels)
 
     def train(self, dataset):
         """
         Trains the model.
         """
-        "*** YOUR CODE HERE ***"
+        batch_size = 100
+        learning_rate = -0.09
+        validation_accuracy = 0
+        while validation_accuracy < 0.83:
+            for x, y in dataset.iterate_once(batch_size):
+                params = [self.W, self.W_hidden, self.b1, self.b2]
+                grad_wrt_W, grad_wrt_W_hidden, grad_wrt_b1, grad_wrt_b2 = nn.gradients(self.get_loss(x, y), params)
+                self.W.update(grad_wrt_W, learning_rate)
+                self.W_hidden.update(grad_wrt_W_hidden, learning_rate)
+                self.b1.update(grad_wrt_b1, learning_rate)
+                self.b2.update(grad_wrt_b2, learning_rate)
+
+                validation_accuracy = dataset.get_validation_accuracy()
+        
